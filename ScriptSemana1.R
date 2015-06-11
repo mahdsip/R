@@ -1,13 +1,16 @@
+#Usar variables
+SquareRoot2 = sqrt(2) o SquareRoot2 <- sqrt(2)
+SquareRoot2 -> Te muestra el contenido.
 #se pueden realizar directamente operaciones matematicas del tipo 5*6 o sqrt() para raiz cuadrada
 #listar todas las variables
 ls() 
-#Crear un vector
+#Crear un vector combine function
 Country = c ("Brazil","Spain","Italy")
 LifeExpentancy = c(76,87,89)
 Country[1] --> "Brazil" 
 #Crear un dataFrame
 CountryData = data.frame(Country,LifeExpentancy)
-#Añadir nueva variable al dataFrame
+#AÃ±adir nueva variable al dataFrame
 CountryData$Population = c (1990000,54800900,54099988)
 #Combinar dataFrames
 Country = c("Canada","Australia")
@@ -25,11 +28,11 @@ setwd('C:/CURSODATA')
 USDA = read.csv("USDA.csv")
 
 str (USDA)
-#Información sobre el dataset
+#InformaciÃ³n sobre el dataset
 summary(USDA)
-#Información resumen sobre el dataset con minimo,1st quadrant,mediana,media,3quadrant,maximo
+#InformaciÃ³n resumen sobre el dataset con minimo,1st quadrant,mediana,media,3quadrant,maximo
 USDA$Sodium
-#información sobre todos loc productos con sodio
+#informaciÃ³n sobre todos loc productos con sodio
 which.max(USDA$Sodium) 
 #posicion dentro del vector con maximo valor de sodio
 names(USDA)
@@ -61,7 +64,7 @@ boxplot(USDA$Sugar, main = "Boxplor of sugar level", ylab = "Sugar in labs")
 #grafica que muestra minimo, maximo, media y outliers
 
 
-#Añadir una variable al dataset, por ejemplo 0 o 1 si supera o no 1000 dew sodio
+#AÃ±adir una variable al dataset, por ejemplo 0 o 1 si supera o no 1000 dew sodio
 USDA$HightFat = as.numeric(USDA$TotalFat > mean(USDA$TotalFat,na.rm=TRUE))
 
 table(USDA$HightSodium)
