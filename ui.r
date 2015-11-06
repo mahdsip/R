@@ -5,21 +5,7 @@ library(plotrix)
 # Define UI for application that draws a histogram
 shinyUI(
   dashboardPage(
-    dashboardHeader(title = "Beneficios HUCA", dropdownMenuOutput("messageMenu"),
-                    dropdownMenu(type = "tasks", badgeStatus = "success",
-                                 taskItem(value = 82.7, color = "yellow",
-                                          "Tiempo Medio en Urgencias"
-                                 ),
-                                 taskItem(value = 100, color = "green",
-                                          "Caídas"
-                                 ),
-                                 taskItem(value = 10, color = "red",
-                                          "Úlceras por presión"
-                                 ),
-                                 taskItem(value = 50, color = "yellow",
-                                          "Errores de medicación evitables"
-                                 )
-                    )),
+    dashboardHeader(title = "Beneficios HUCA",  dropdownMenuOutput("notifMenu"),dropdownMenuOutput("taskMenu")),
     
     #########################SIDEBAR############################################
     ## Sidebar content
@@ -27,9 +13,9 @@ shinyUI(
       sidebarMenu(
         menuItem("Dashboard", tabName = "dashboard", icon = icon("dashboard")),
         menuItem("Tiempo en urgencias", tabName = "urg", icon = icon("bar-chart")),
-        menuItem("Caidas", tabName = "caidas", icon = icon("bar-chart")),
+        menuItem("Caídas", tabName = "caidas", icon = icon("bar-chart")),
         menuItem("UPP", tabName = "upp", icon = icon("bar-chart")),
-        menuItem("Errores de medicacion", tabName = "mederr", icon = icon("bar-chart")),
+        menuItem("Errores de medicación", tabName = "mederr", icon = icon("bar-chart")),
         fluidPage(
           hr(
           ),
@@ -48,11 +34,9 @@ shinyUI(
           br(),
           br(),
           br(),
-          br(),
-          br(),
-          br(),
-          br(),
-          br(),
+          box(tags$img(src="legend2.png"),
+              width = 12,
+              title = "Leyenda"),
           box(width = 10,
               tags$img(src="cernerlogoT.png", width = "120px", height = "60px")
               #tags$img(src="cernerlogoT.png"
@@ -65,13 +49,13 @@ shinyUI(
         ####################################DASHBOARD####################################3
         tabItem(tabName = "dashboard",
                 fluidRow(
-                  column(1,offset = 5, h2("Dashboard")),
-                  column(1,offset = 3,tags$img(src="hosplogoT.png"))
+                  column(1,offset = 0,tags$img(src="hosplogoT.png")),
+                  column(1,offset = 4, h2("Dashboard"))
                 ),
                 fluidRow(
                   fluidRow(
                     column(6,offset = 1, h3("Tiempo Medio en urgencias")),
-                    column(1.5,offset = 3,h3("Caidas"))
+                    column(1.5,offset = 3,h3("Caídas"))
                   ),
                   
                   valueBoxOutput("progressBoxED",width = 3),
@@ -114,11 +98,13 @@ shinyUI(
         ############################URG########################################
         tabItem(tabName = "urg",
                 fluidRow(
-                  column(4,offset = 4, h2("Tiempo Medio de Urgencias")),
-                  column(1,offset = 1,tags$img(src="hosplogoT.png"))
+                  column(1,offset = 0,tags$img(src="hosplogoT.png")),
+                  column(5,offset = 4, h2("Tiempo Medio de Urgencias"))
+                  
                 ),
                 fluidRow(
                   column(6,
+                         offset = 4,
                          box(
                            title = "Maximo de horas en Urgencias",
                            sliderInput("n", "Horas:", min=1, max = 120, value = 48)
@@ -126,11 +112,19 @@ shinyUI(
                          )
                   )
                 ),
-                fluidRow(
-                  box(plotOutput("distPlotUrg")),
-                  box(plotOutput("distHistUrg")),
-                  box(plotOutput("barplotUrg")),
-                  box(plotOutput("ggplotUrg"))
+                tabsetPanel(
+                  tabPanel("Tiempo medio en urgencias",
+                           fluidRow(box(plotOutput("distPlotUrg")),
+                                    box(plotOutput("distHistUrg"))
+                           )
+                           ),
+                   tabPanel("Por tipo de episodio",
+                            fluidRow(
+                              box(plotOutput("barplotUrg")),
+                              box(plotOutput("ggplotUrg"))
+                            )
+                            )
+
                   
                 ),  
                 fluidRow(
@@ -141,8 +135,8 @@ shinyUI(
         # Second tab content
         tabItem(tabName = "caidas",
                 fluidRow(
-                  column(1,offset = 5, h2("Caídas")),
-                  column(1,offset = 3,tags$img(src="hosplogoT.png"))
+                  column(1,offset = 0,tags$img(src="hosplogoT.png")),
+                  column(1,offset = 4, h2("Caídas"))
                 ),
                               tabsetPanel(
                                 tabPanel("Caídas por mes",
@@ -159,7 +153,12 @@ shinyUI(
                                          ),
                                 tabPanel("Caídas por horas",
                                          fluidRow(
-                                           box(plotOutput("distRadarFalls"))
+                                           box(plotOutput("distRadarFalls",height = 210),width = 3),
+                                           box(plotOutput("distRadarFallsSERV",height = 210),width = 3)
+                                         ),
+                                         fluidRow(
+                                           box(plotOutput("distRadarFallsLEV",height = 210),width = 3),
+                                           box(plotOutput("distRadarFallsACO",height = 210),width = 3)
                                          )
                                          )
                               ), 
@@ -170,12 +169,25 @@ shinyUI(
         ########################UPP#############################################
         tabItem(tabName = "upp",
                 fluidRow(
-                  column(4,offset = 4, h2("Úlceras por presión")),
-                  column(1,offset = 1,tags$img(src="hosplogoT.png"))
+                  column(1,offset = 0,tags$img(src="hosplogoT.png")),
+                  column(5,offset = 4, h2("Úlceras por presión"))
                 ),
-                fluidRow(
-                  box(plotOutput("distPlotUPP")),
-                  box(plotOutput("distPlotUPP2"))
+                tabsetPanel(
+                  tabPanel("Valoración de pacientes",
+                            fluidRow(
+                              box(plotOutput("distPlotUPP"))
+                            )
+                  ),
+                  tabPanel("Tipo de UCC",
+                            fluidRow(
+                            box(plotOutput("distPlotUPP3"))
+                          ) 
+                    ),
+                  tabPanel("Comparativa con Encuesta Nacional de prevalencia 2013",
+                          fluidRow(
+                          box(plotOutput("distPlotUPP4"))
+                          )
+                  )
                 ),
                 fluidRow(
                   column(6,offset = 10,tags$img(src="cernerlogoT.png", width = "120px", height = "60px"))
@@ -184,21 +196,25 @@ shinyUI(
         #####################MEDERR#######################################################
         tabItem(tabName = "mederr",
                 fluidRow(
-                  column(4,offset = 2, h2("Errores de medicación evitables")),
-                  column(1,offset = 3,tags$img(src="hosplogoT.png"))
+                  column(1,offset = 0,tags$img(src="hosplogoT.png")),
+                  column(6,offset = 4, h2("Errores de medicación evitables"))
                 ), 
                 tabsetPanel(
-                  tabPanel("Errores de mediciación por estancia",
+                  tabPanel("Número de alertas por estancia",
                            fluidRow(
                              box(plotOutput("distPlotMEDERR")),
                              box(plotOutput("distPlotMEDERRPOS"))
                            )),
-                  tabPanel("Errores de medicación por prescripciones de farmacia",
+                  tabPanel("Número de alertas por prescripciones de farmacia",
                            fluidRow(
                              box(plotOutput("distPlotMEDERRORD"))
                              #box(plotOutput("distPlotMEDERRPOS"))
                            )
-                  )
+                  ),
+                  tabPanel("Número de alertas por eventos de medicación adversa",
+                           fluidRow(
+                             box(plotOutput("distPlotMEDERREAM"))
+                           ))
                 ),
                 fluidRow(
                   column(6,offset = 10,tags$img(src="cernerlogoT.png", width = "120px", height = "60px"))
