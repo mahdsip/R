@@ -6,6 +6,15 @@ library(ggplot2)
 library(plotrix)
 #library(plotly)
 
+######################BENEFITS STANTDARD REFERENCES###########################
+
+#SPANISH HEALTH MINISTRY - Time from Door to Doctor in ED (not Urgent) ################
+#It has 4 levels Emergency, Very Urgent, Urgent, Less Urgent and Not Urgent 
+URG_MED_1 = 120
+#SPANISH HEALTH MINISTRY - Time from Registration to Admission in ED (not Urgent) ################
+URG_MED_2 = 240
+
+
 #############################STANCIES#############################################
 ESTAN1 = c(20181,20591,23036,26531,26218,25896,27565, 26310,27935,25797,26749,25410)
 ESTAN2 = c("30/07/2014 00:00:00","30/08/2014 00:00:00","30/09/2014 00:00:00","30/10/2014 00:00:00","30/11/2014 00:00:00","30/12/2014 00:00:00","30/01/2015 00:00:00","28/02/2015 00:00:00","30/03/2015 00:00:00","30/04/2015 00:00:00","30/05/2015 00:00:00","30/06/2015 00:00:00")
@@ -20,13 +29,31 @@ CAMAS = data.frame(CAMAS1,CAMAS2)
 CAMAS$CAMAS2 = parse_date_time(CAMAS$CAMAS2, "%d%m%y %H%M%S", tz="UTC")
 CAMAS$MES = as.yearmon(CAMAS$CAMAS2,"%Y-%B")
 CAMAS$CAMAS2 <-NULL
+################################INPATIENTS########################################
+INP1 = c(2320,2239,2517,2883,2785,2728,2942,2890,2987,2754,2898,2787)
+INP2 = c("30/07/2014 00:00:00","30/08/2014 00:00:00","30/09/2014 00:00:00","30/10/2014 00:00:00","30/11/2014 00:00:00","30/12/2014 00:00:00","30/01/2015 00:00:00","28/02/2015 00:00:00","30/03/2015 00:00:00","30/04/2015 00:00:00","30/05/2015 00:00:00","30/06/2015 00:00:00")
+INP = data.frame(INP1,INP2)
+INP$INP2 = parse_date_time(INP$INP2, "%d%m%y %H%M%S", tz="UTC")
+INP$MES = as.yearmon(INP$INP2,"%Y-%B")
+INP$INP2 <-NULL
 ##################################ORDERS#####################################
-ORD1 = c(70455,74465,77789,91886,92042,89398,96936,94623,94923,95673,96624,96023)
+ORD1 = c(70455,74465,77789,91886,92042,89398,96936,94623,99873,91064,92086,94379)
 ORD2 = c("30/07/2014 00:00:00","30/08/2014 00:00:00","30/09/2014 00:00:00","30/10/2014 00:00:00","30/11/2014 00:00:00","30/12/2014 00:00:00","30/01/2015 00:00:00","28/02/2015 00:00:00","30/03/2015 00:00:00","30/04/2015 00:00:00","30/05/2015 00:00:00","30/06/2015 00:00:00")
 ORD = data.frame(ORD1,ORD2)
 ORD$ORD2 = parse_date_time(ORD$ORD2, "%d%m%y %H%M%S", tz="UTC")
 ORD$MES = as.yearmon(ORD$ORD2,"%Y-%B")
 ORD$ORD2 <-NULL
+##################################RAM#####################################
+RAM1 = c(0,0,0,1,2,1,6,1,7,2,1,1)
+RAM2 = c("30/07/2014 00:00:00","30/08/2014 00:00:00","30/09/2014 00:00:00","30/10/2014 00:00:00","30/11/2014 00:00:00","30/12/2014 00:00:00","30/01/2015 00:00:00","28/02/2015 00:00:00","30/03/2015 00:00:00","30/04/2015 00:00:00","30/05/2015 00:00:00","30/06/2015 00:00:00")
+RAM = data.frame(RAM1,RAM2)
+RAM$RAM2 = parse_date_time(RAM$RAM2, "%d%m%y %H%M%S", tz="UTC")
+RAM$MES = as.yearmon(RAM$RAM2,"%Y-%B")
+RAM$RAM2 <-NULL
+###############################KPI DATA#######################################
+KPI = read.csv("KPI.csv")
+KPI$BASE = as.numeric(KPI$BASE)
+KPI$OBJETIVO = as.numeric(KPI$OBJETIVO)
 
 #####################Prepare URG DATA##################################################
 URG= read.csv("emr/benefits_emr.csv",header = TRUE,sep = ",")
@@ -40,8 +67,6 @@ URG_DASH = subset(URG_DASH, URG_DASH$TIEMPO< TRESHOLD)
 URG_DASH = subset(URG_DASH,URG_DASH$FECHA_LLEGADA>="2014-10-01 00:00:00")
 URG_DASH1 = subset(URG_DASH,URG_DASH$FECHA_LLEGADA<"2015-01-01 00:00:00" & URG_DASH$FECHA_LLEGADA>="2014-10-01 00:00:00")
 URG_DASH2 = subset(URG_DASH,URG_DASH$FECHA_LLEGADA>="2015-01-01 00:00:00")
-URG_MEAN_BASE = 315
-URG_OBJ = 10
 M = aggregate(URG_DASH2$TIEMPO,list(Mes = URG_DASH2$MES),mean)
 M = subset(M,M$Mes == "jun 2015")
 URG_MEAN2 = M$x
@@ -88,6 +113,8 @@ CAIDAS$POWERPLAN = sub(".*r/c", "", CAIDAS$POWERPLAN)
 CAIDAS$POWERPLAN = ifelse(CAIDAS$POWERPLAN=="","Sin powerplan",CAIDAS$POWERPLAN)
 CAIDAS$UBICACION <- substr(CAIDAS$UBICACION,1,6)
 CAIDAS$LUGAR[grep("Otr",CAIDAS$LUGAR)] <- "Otras"
+CAIDAS$ACTIVIDAD = factor(CAIDAS$ACTIVIDAD)
+#CAIDAS$ACTIVIDAD[grep("Otr",CAIDAS$ACTIVIDAD)] <- "Otras"
 
 #Prepare FALLS 1
 CAIDAS_1 <- CAIDAS
@@ -108,12 +135,12 @@ CAIDAS_5 <- CAIDAS
 CAIDAS_6 <- CAIDAS
 
 
-C = aggregate(CAIDAS$CAIDA,list(Mes = CAIDAS$MES),sum)
-C = subset(C,C$Mes=="jun 2015")
-C = C$x
+FALL = aggregate(CAIDAS$CAIDA,list(Mes = CAIDAS$MES),sum)
+FALL = subset(FALL,FALL$Mes=="jun 2015")
+FALL = FALL$x
 
-CEST = subset(ESTAN,ESTAN$MES=="jun 2015")
-CEST = CEST$ESTAN1
+FALL_EST = subset(ESTAN,ESTAN$MES=="jun 2015")
+FALL_EST = FALL_EST$ESTAN1
 
 TABLACAI = table(CAIDAS$MES)
 TABLACAI = as.data.frame(TABLACAI)
@@ -122,9 +149,6 @@ EST = as.vector(ESTAN$ESTAN1)
 CA = as.vector(TABLACAI$Freq)
 CAI = round(1000*CA/EST,digits = 4)
 
-FALL_BASE = 0.64
-FALL_OBJ_PER = 10
-FALL_OBJ = FALL_BASE - (FALL_BASE*FALL_OBJ_PER/100)
 
 ####################Prepare UPP DATA##############################################
 UPP = read.csv("upp/benefits_upp.csv", header=TRUE)
@@ -135,12 +159,10 @@ UPP$RIESGO = ifelse(UPP$RIESGO=="","NO RIESGO","RIESGO")
 UPP$UPP_HOSPITAL = UPP$UPP - UPP$UPP_FUERA
 
 PAC = aggregate(UPP$UPP_HOSPITAL,list(Mes = UPP$MES),sum)
-PAC$PREV = CAMAS$CAMAS1/PAC$x
+PAC$PREV = PAC$x*100/INP$INP1
 PAC$x <- NULL
 UPPTARGET = subset(PAC,PAC$Mes=="jun 2015")
-UPP_BASE = 4.86
-UPP_OBJ_PER = 15
-UPP_OBJ = UPP_BASE - (UPP_BASE*UPP_OBJ_PER/100)
+
 
 UPP_1 <- UPP
 UPP_2 <- UPP
@@ -179,49 +201,139 @@ MEDALER2 = as.numeric(ALER[12])
 
 ################## Define server logic required to draw ############################
 shinyServer(function(input, output) {
+  
 
 ####################DASHBOARD#########################################   
+  RESULT_ACCEPT = 0.2
+  
+  URG_MEAN_BASE = KPI$BASE[1]
+  URG_OBJ_PER = KPI$OBJETIVO[1]
+  URG_OBJ = URG_MEAN_BASE -(URG_MEAN_BASE*URG_OBJ_PER/100)
+  URG_OBJ_ABS = (-1)*(URG_MEAN_BASE - URG_OBJ)
+  
+  UPP_BASE = KPI$BASE[3]
+  UPP_OBJ_PER = KPI$OBJETIVO[3]
+  UPP_OBJ = UPP_BASE - (UPP_BASE*UPP_OBJ_PER/100)
+  
+  FALL_BASE = KPI$BASE[2]
+  FALL_OBJ_PER = KPI$OBJETIVO[2]
+  FALL_OBJ = FALL_BASE - (FALL_BASE*FALL_OBJ_PER/100)
+
+  UPP_VAL = (UPP_BASE-UPPTARGET$PREV)*100/UPP_BASE
+  
+  
+  taskData <- data.frame(
+    value = c(format(round((-1*(URG_MEAN_BASE - URG_MEAN2)*100/URG_OBJ_ABS),digits = 2),nsmall = 2),
+              format(round((FALL_BASE-(FALL*1000/FALL_EST))*100/(FALL_BASE-FALL_OBJ),digits = 2),nsmall = 2),
+              format(round((UPP_VAL*100)/UPP_OBJ_PER,digits = 2),nsmall = 2),
+              "100"
+    ),
+    message = c("Tiempo medio de urgencias","Caidas","UPP","Errores de medicación evitables"),
+    stringsAsFactors = FALSE
+  )
+  
+  notifData <- subset(taskData,as.numeric(taskData$value)>99) 
+  
+  output$taskMenu <- renderMenu({
+    tasks <- apply(taskData, 1, function(row) {
+      taskItem(
+        color = if (as.numeric(row[["value"]]) >= 100) "green" 
+                else 
+                    if (as.numeric(row[["value"]])+(RESULT_ACCEPT*100) >= 100) "yellow" 
+                    else "red",
+        value = row[["value"]],
+        paste(row[["message"]])
+      )
+    })
+    
+    dropdownMenu(type = "tasks", .list = tasks)
+  })
+  
+  output$notifMenu <- renderMenu({
+    
+    notif <- apply(notifData, 1, function(row) {
+      notificationItem(
+        text = row[["message"]],
+        icon("check"),
+        status = "success"
+      )
+    })  
+    
+    dropdownMenu(type = "notifications", .list = notif, badgeStatus = "success",icon = tags$b("Miguel Huerta"))
+  })
+  
+  
+  output$legend <- renderPlot({
+    plot(1, type="n", axes=F, xlab="", ylab="")
+    legend(x="topleft",c("100% logrado","> 80% logrado","< 80% logrado","Objetivo"),box.lty=0,pch = c(15),lty = c(0),lwd=c(5),col=c("green","orange","red","purple"))
+  })  
   
   ################### DASHBOARD URG###############################
   output$progressBoxED <- renderValueBox({
+    
+    URG_VAL = (-1)*(URG_MEAN_BASE - URG_MEAN2)
+    URG_VAL_PER = (URG_VAL*100/URG_OBJ_ABS)
+    URG_VAL_ABS = (URG_VAL*100/URG_MEAN_BASE)
+    
     valueBox(
-      paste0("-",format(round(100-(URG_MEAN2*100/URG_MEAN_BASE),digits = 2),nsmall = 2), "%"),
-      paste0("VALOR: TMU de ",format(round(URG_MEAN2,digits = 2),nsmall = 2)," Descenso de: ",format(round(URG_MEAN_BASE-URG_MEAN2,digits = 2),nsmall = 2)," minutos sobre la base"), icon = icon("list"),
-      color = "purple"
+      paste0(format(round(URG_VAL_ABS,digits = 2),nsmall = 2), "%"),
+      paste0("VALOR: ",format(round(URG_MEAN2,digits = 2),nsmall = 2)," minutos.","Variación de: ",format(round(URG_VAL,digits = 2),nsmall = 2)," minutos sobre la base"),
+      icon = if ((100-(URG_MEAN2*100/URG_MEAN_BASE))+(RESULT_ACCEPT*URG_OBJ_PER) >= URG_OBJ_PER) icon("thumbs-up", lib = "glyphicon")
+                else 
+                  icon("thumbs-down", lib = "glyphicon"),
+      color = if ((100-(URG_MEAN2*100/URG_MEAN_BASE)) >= URG_OBJ_PER) "green" 
+              else 
+                if ((100-(URG_MEAN2*100/URG_MEAN_BASE))+(RESULT_ACCEPT*URG_OBJ_PER) >= URG_OBJ_PER) "yellow" 
+                else "red"
     )
+
   })
   output$approvalBoxED <- renderValueBox({
     valueBox(
-      paste0("-",URG_OBJ,"%")
-      , "OBJETIVO: Descenso del 10% (31,5 mins) del TMU sobre una base de 315 minutos", icon = icon("thumbs-up", lib = "glyphicon"),
-      color = "yellow"
+      paste0("-",URG_OBJ_PER,"%"),
+      paste0("OBJETIVO: ",URG_OBJ," minutos.","Variación de ",URG_OBJ_ABS," minutos sobre una base de ",URG_MEAN_BASE," minutos"), 
+      icon = icon("area-chart"),
+      color = "purple"
     )})
+  output$Progess1 <- renderText({ 
+    paste0((100-(URG_MEAN2*100/URG_MEAN_BASE))*100/URG_OBJ_PER)
+  })
   
   output$distPlotUrgDash <- renderPlot({
 
     plot(aggregate(URG_DASH$TIEMPO,list(Mes = URG_DASH$MES),mean),type = "l",pch = 15,col = 40,ylab = "Tiempo medio")
     abline(h=mean(URG_DASH$TIEMPO),col = "blue")
     abline(h=URG_MEAN_BASE, col = "brown")
-    abline(h=(URG_MEAN_BASE - (URG_MEAN_BASE*URG_OBJ/100)), col = "orange")
+    abline(h=(URG_MEAN_BASE - (URG_MEAN_BASE*URG_OBJ_PER/100)), col = "orange")
     legend(x="bottom",horiz = TRUE, c("Base","Actual","Objetivo","Medio"),lty = c(1,1,1,1),lwd=c(2.5,2.5,2.5,2.5),col=c("brown","blue","orange","grey"))
   })
   
   ####################### DASH BOARD FALLS##############################
   output$progressBoxFalls <- renderValueBox({
+    FALL_VAL = (FALL*1000/FALL_EST)
+    FALL_VAL_PER = (-1)*(100-(FALL_VAL*100/FALL_BASE))
+    #URG_VAL_ABS = (URG_VAL*100/URG_MEAN_BASE)
+    
     valueBox(
-      paste0("-",format(round(100-(C*1000/CEST)*100/FALL_BASE,digits = 2),nsmall = 2), "%"),
-      paste0("VALOR: ",format(round(C*1000/CEST,digits = 2),nsmall = 2)," caídas por cada 1000 estancias",
-             ", descenso de ",format(round(FALL_BASE-(C*1000/CEST),digits = 2),nsmall = 2), " caídas por cada 1000 estancias"),
-      icon = icon("list"),
-      color = "purple"
+      paste0(format(round(FALL_VAL_PER,digits = 2),nsmall = 2), "%"),
+      paste0("VALOR: ",format(round(FALL_VAL,digits = 2),nsmall = 2)," caídas por cada 1000 estancias",
+             ". Variación de ",format(round(FALL_VAL-FALL_BASE,digits = 2),nsmall = 2), " caídas por cada 1000 estancias sobre la base"),
+      icon = if ((100-(FALL*1000/FALL_EST)*100/FALL_BASE)+(RESULT_ACCEPT*FALL_OBJ_PER) >= FALL_OBJ_PER) icon("thumbs-up", lib = "glyphicon")
+      else 
+        icon("thumbs-down", lib = "glyphicon"),
+      color = if ((100-(FALL*1000/FALL_EST)*100/FALL_BASE) >= FALL_OBJ_PER) "green" 
+      else 
+        if ((100-(FALL*1000/FALL_EST)*100/FALL_BASE)+(RESULT_ACCEPT*FALL_OBJ_PER) >= FALL_OBJ_PER) "yellow" 
+      else "red"      
+      
     )
   })
   output$approvalBoxFalls <- renderValueBox({
     valueBox(
       paste0("-",FALL_OBJ_PER,"%"),
-      paste0("OBJETIVO: Disminuir el número de caídas un ",FALL_OBJ_PER,"% (",FALL_OBJ,") sobre la base de ",FALL_BASE," por 1000 estancias"),
-      icon = icon("thumbs-up", lib = "glyphicon"),
-      color = "yellow"
+      paste0("OBJETIVO: ",FALL_OBJ," por cada 1000 estancias. Variación de ",format(round(FALL_OBJ-FALL_BASE,digits = 2),nsmall = 2)," sobre la base de ",FALL_BASE," caídas por 1000 estancias"),
+      icon = icon("area-chart"),
+      color = "purple"
     )})
   
   output$distPlotFallsDash <- renderPlot({
@@ -240,42 +352,56 @@ shinyServer(function(input, output) {
   #################DASHBOARD UPP#####################################
   
   output$progressBoxUPP <- renderValueBox({
-    UPPBASE = 4.86
+    
     valueBox(
-      paste0(format(round(-((UPPBASE-UPPTARGET$PREV)*100/UPPBASE),digits = 2),nsmall = 2), "%"),
-      paste0("VALOR: ",format(round(UPPTARGET$PREV,digits = 2),nsmall = 2),"% de prevalencia en Junio, aumento de ", format(-round(UPPBASE-UPPTARGET$PREV,digits = 2),nsmall = 2), " puntos de prevalencia"),
-      icon = icon("list"),
-      color = "purple"
+      paste0(format(round(-((UPP_BASE-UPPTARGET$PREV)*100/UPP_BASE),digits = 2),nsmall = 2), "%"),
+      paste0("VALOR: ",format(round(UPPTARGET$PREV,digits = 2),nsmall = 2),"% de prevalencia en Junio. Variación de ", format(round(UPPTARGET$PREV-UPP_BASE,digits = 2),nsmall = 2), " puntos de prevalencia sobre la base"),
+      icon = if (((UPP_BASE-UPPTARGET$PREV)*100/UPP_BASE)+(RESULT_ACCEPT*UPP_OBJ_PER) >=UPP_OBJ_PER) icon("thumbs-up", lib = "glyphicon")
+      else 
+        icon("thumbs-down", lib = "glyphicon"),
+      color = if ((UPP_BASE-UPPTARGET$PREV)*100/UPP_BASE >= UPP_OBJ_PER) "green" 
+      else 
+        if (((UPP_BASE-UPPTARGET$PREV)*100/UPP_BASE)+(RESULT_ACCEPT*UPP_OBJ_PER) >= UPP_OBJ_PER) "yellow" 
+      else "red"  
     )
   })
   output$approvalBoxUPP <- renderValueBox({
     valueBox(
       paste0("-",UPP_OBJ_PER,"%"),
-      paste0("OBJETIVO: Disminuir un ",15, "% (",UPP_OBJ,") las UPP sobre una base de ",UPP_BASE,"% de prevalencia semestral"),
-      icon = icon("thumbs-up",
-                  lib = "glyphicon"),
-      color = "yellow"
+      paste0(UPP_OBJ,"% de prevalencia de UPP. Variación de ",UPP_OBJ-UPP_BASE," puntos sobre una base de ",UPP_BASE,"% de prevalencia semestral"),
+      icon = icon("area-chart"),
+      color = "purple"
     )})
   
   output$distPlotUPPDash <- renderPlot({
 
-    plot(PAC,type = "l")
-    abline(h=4.86, col = "brown")
-    legend(x="topright",c("Prevalencia Base","Prevalencia"),lty = c(1,1),lwd=c(2.5,2.5),col=c("brown","black"))
+    plot(PAC,type = "l", ylim = c(1,5))
+    abline(h=UPP_BASE, col = "brown")
+    abline(h=UPP_OBJ, col = "orange")
+    legend(x="bottom",horiz = TRUE,c("Prevalencia Base","Prevalencia","Objetivo"),lty = c(1,1),lwd=c(2.5,2.5),col=c("brown","grey","orange"))
   })
   ############## DASHBOARD MEDERR ##################################
+  MEDERR_OBJ = 0
+  MEDERR_OBJ_PER = 0
+  
   output$progressBoxMEDERR <- renderValueBox({
     valueBox(
       paste0("-",format(round(100-(MEDALER2*100/MEDALER1),digits = 2),nsmall = 2), "%"),
       paste0("VALOR: El número de alertas por estancia a descendido en ",format(round((MEDALER1-MEDALER2),digits = 2),nsmall = 2)," puntos desde Julio de 2014"),
-      icon = icon("list"),
-      color = "purple"
+      icon = if ((100-(MEDALER2*100/MEDALER1))+(RESULT_ACCEPT*MEDERR_OBJ_PER) >=MEDERR_OBJ_PER) icon("thumbs-up", lib = "glyphicon")
+      else 
+        icon("thumbs-down", lib = "glyphicon"),
+      color = if (100-(MEDALER2*100/MEDALER1) >= MEDERR_OBJ_PER) "green" 
+      else 
+        if ((100-(MEDALER2*100/MEDALER1))+(RESULT_ACCEPT*MEDERR_OBJ_PER) >= MEDERR_OBJ_PER) "yellow" 
+      else "red" 
     )
   })
   output$approvalBoxMEDERR <- renderValueBox({
     valueBox(
-      "N/A", "OBJETIVO: Disminución del número de errores de medicación evitables", icon = icon("thumbs-up", lib = "glyphicon"),
-      color = "yellow"
+      "N/A", "OBJETIVO: Disminución del número de errores de medicación evitables", 
+      icon = icon("area-chart"),
+      color = "purple"
     )}) 
   
   output$distPlotMEDERRDash <- renderPlot({
@@ -286,6 +412,9 @@ shinyServer(function(input, output) {
             ylab="Alertas por estancia",
             col = "grey",
             names.arg = MES)
+    abline(h=MEDALER1, col = "brown")
+    legend(x="bottom",horiz = TRUE,c("EMA Base"),lty = c(1,1),lwd=c(2.5,2.5),col=c("brown","grey","orange"))
+    #abline(h=UPP_OBJ, col = "orange")
     
   })
   
@@ -297,10 +426,10 @@ shinyServer(function(input, output) {
     URG_1$FECHA_HORA = as.Date(URG_1$FECHA_LLEGADA, "%d%m%y", tz="UTC")
     URG_1 = subset(URG_1,URG_1$FECHA_HORA>=input$dateRangeALL[1]&URG_1$FECHA_HORA<=input$dateRangeALL[2])
     
-    plot(aggregate(URG_1$TIEMPO,list(Mes = URG_1$MES),mean),type = "l",pch = 15,col = 40,ylab = "Tiempo medio")
+    plot(aggregate(URG_1$TIEMPO,list(Mes = URG_1$MES),mean),type = "l",pch = 15,col = 40,ylab = "Tiempo medio", main = "Tiempos medios de urgencias")
     abline(h=mean(URG_1$TIEMPO),col = "blue")
     abline(h=URG_MEAN_BASE, col = "brown")
-    abline(h=(URG_MEAN_BASE - (URG_MEAN_BASE*URG_OBJ/100)), col = "orange")
+    abline(h=(URG_MEAN_BASE - (URG_MEAN_BASE*URG_OBJ_PER/100)), col = "orange")
     par(xpd=TRUE)
     legend(x="bottom",xpd = TRUE,horiz = TRUE, c("Base","Actual","Objetivo","Medio"),lty = c(1,1,1,1),lwd=c(2.5,2.5,2.5,2.5),col=c("brown","blue","orange","grey"))
   }) 
@@ -330,7 +459,7 @@ shinyServer(function(input, output) {
     URG_3 = subset(URG_3,URG_3$FECHA_HORA2>=input$dateRangeALL[1]&URG_3$FECHA_HORA2<=input$dateRangeALL[2])
     barplot(table(URG_3$TIPO_EPISODIO,URG_3$MES),
             col = c('green','darkblue','darkblue'),
-            main="Número de entradas en urgencias por tipo",
+            main="Número de entradas en urgencias por tipo de episodio",
             xlab="Tipo",
             ylab="Pacientes")
             #legend =  rownames(table(URG_3$TIPO_EPISODIO,URG_3$MES)))
@@ -369,14 +498,27 @@ shinyServer(function(input, output) {
 #       filename="r-docs/simple-bars"
 #     )
 #     p2
-        
-    ggplot(URG_4_AGG, aes(x = URG_4_AGG$Mes, y = URG_4_AGG$x, fill=URG_4_AGG$TIP)) + 
+    #URG_4_AGG<<-URG_4_AGG    
+    #environment = environment()
+    
+    #URG_4_AGG$x = factor(URG_4_AGG$x)
+    #URG_4_AGG$Mes = factor(URG_4_AGG$Mes)
+    #URG_4_AGG$TIP = factor(URG_4_AGG$TIP)
+    ggplot(URG_4_AGG, aes(x = URG_4_AGG$Mes, y = URG_4_AGG$x, fill=URG_4_AGG$TIP), environment=environment()) + 
       geom_bar(stat = "identity", position=position_dodge()) +
-      geom_text(aes(y=URG_4_AGG$x, ymax=URG_4_AGG$x, label=round(URG_4_AGG$x,0.01)), position= position_dodge(width=0.01), vjust=-.5, color="black") +
+      geom_text(aes(y=(URG_4_AGG$x)-10, ymax=URG_4_AGG$x, label=round(URG_4_AGG$x,0.01)), position= position_dodge(width=1), color="black") +
       scale_y_continuous("Minutos",limits=c(0,500)) + 
       scale_x_discrete("Meses") +
-      scale_fill_discrete(name ="Tipo Episodio", labels=c("Hospitalizados", "Urgencias"))
-  })
+      geom_hline(yintercept=URG_MED_1, color = "brown")+
+      geom_hline(yintercept=URG_MED_2, color = "orange")+
+      ggtitle(expression(atop(bold("Tiempo medio en urgencias por tipo de episodio"), atop(italic("Referencia: Tiempo de puerta a doctor para urgencias leves(120) y de registro a ingreso (240) del Ministerio de Sanidad"), "")))) +
+      #scale_fill_discrete(name ="Tipo Episodio", labels=c("Hospitalizados", "No hospitalizados"))+ theme_classic()
+      scale_fill_manual(values = c("green", "blue"),
+                        name= "Tipo episodio", 
+                        labels=c("Hospitalizados", "No hospitalizados"),
+                        guide = guide_legend(reverse = TRUE))+ theme_classic() + theme(legend.position="top")
+    
+    })
 ############################FALLS#############################  
   output$distHistFalls<- renderPlot({
   
@@ -410,29 +552,75 @@ shinyServer(function(input, output) {
   output$distPlotFallsPW <- renderPlot({
     CAIDAS_2 = subset(CAIDAS_2,CAIDAS_2$FECHA_HORA>=input$dateRangeALL[1]&CAIDAS_2$FECHA_HORA<=input$dateRangeALL[2])
     PP = table(CAIDAS_2$POWERPLAN)
-    pie3D(PP,main = "Porcentaje de caídas con y sin PowerPlan")
+    CAID = sum(CAIDAS_2$CAIDA)
+    FRAME <- as.data.frame(PP)
+    x <- FRAME$Freq
+    names(x) <- FRAME$Var1
+    pct <- round(x/sum(x)*100)
+    pct <- paste(names(x), pct)
+    pct <- paste(pct, "%", sep="")
+    pie3D(PP,
+          main = paste0("Caídas: ",CAID),labels = pct
+          #col=c("darkblue","green","blue","darkblue","darkgreen","brown")
+          )
     
   })
   
   output$distPlotFallsLO <- renderPlot({
     CAIDAS_4 = subset(CAIDAS_4,CAIDAS_4$FECHA_HORA>=input$dateRangeALL[1]&CAIDAS_4$FECHA_HORA<=input$dateRangeALL[2])
     PP = table(CAIDAS_4$LUGAR)
-    pie(PP,main = "Porcentaje de caídas por lugar")
+    FRAME <- as.data.frame(PP)
+    x <- FRAME$Freq
+    names(x) <- FRAME$Var1
+    pct <- round(x/sum(x)*100)
+    pct <- paste(names(x), pct)
+    pct <- paste(pct, "%", sep="")
+    pie(PP,label = pct,main = "Porcentaje de caídas por lugar",col=c("darkblue","green","blue","darkblue","darkgreen","brown"))
     
   })  
   
   output$distPlotFallsUB <- renderPlot({
     CAIDAS_5 = subset(CAIDAS_5,CAIDAS_5$FECHA_HORA>=input$dateRangeALL[1]&CAIDAS_5$FECHA_HORA<=input$dateRangeALL[2])
     PP = table(CAIDAS$UBICACION)
-    pie(PP,main = "Porcentaje de caídas por ubicación")
+    FRAME <- as.data.frame(PP)
+    x <- FRAME$Freq
+    names(x) <- FRAME$Var1
+    pct <- round(x/sum(x)*100)
+    pct <- paste(names(x), pct)
+    pct <- paste(pct, "%", sep="")
+    pie(PP,label = pct,main = "Porcentaje de caídas por ubicación",col=c("darkblue","green","blue","darkblue","darkgreen","brown"))
     
   })
   
   output$distRadarFalls<- renderPlot({
 
     #CAIDAS_6 = subset(CAIDAS_6,CAIDAS_6$FECHA_HORA>=input$dateRangeALL[1]&CAIDAS_6$FECHA_HORA<=input$dateRangeALL[2])
-    radar <- ggplot(CAIDAS_6, aes(factor(CAIDAS_6$HORA))) +  geom_bar(fill="darkblue",width = 1, colour = "green")
-    radar + coord_polar()   
+    radar <- ggplot(CAIDAS_6, aes(factor(CAIDAS_6$HORA)), environment=environment()) +  geom_bar(fill="darkblue",width = 1, colour = "green")
+    radar + xlab("Horas")+ ylab("Caidas")+ coord_polar()+ ggtitle("Total caídas")+ theme_bw()#theme_classic()
+
+  }) 
+  
+  output$distRadarFallsSERV<- renderPlot({
+    
+    CAIDAS_61 = subset(CAIDAS_6,CAIDAS_6$ACTIVIDAD=="Ir al servicio")
+    radar <- ggplot(CAIDAS_61, aes(factor(CAIDAS_61$HORA)), environment=environment()) +  geom_bar(fill="darkblue",width = 1, colour = "green")
+    radar + xlab("Horas")+ ylab("Caidas")+ coord_polar()+ ggtitle("Actividad: Ir al servicio")+ theme_bw()#theme_classic()
+    
+  }) 
+  
+  output$distRadarFallsLEV<- renderPlot({
+    
+    CAIDAS_62 = subset(CAIDAS_6,CAIDAS_6$ACTIVIDAD=="Levantarse")
+    radar <- ggplot(CAIDAS_62, aes(factor(CAIDAS_62$HORA)), environment=environment()) +  geom_bar(fill="darkblue",width = 1, colour = "green")
+    radar + xlab("Horas")+ ylab("Caidas")+ggtitle("Actividad: Levantarse")+ coord_polar() + theme_bw()#theme_classic()
+    
+  }) 
+  output$distRadarFallsACO<- renderPlot({
+    
+    CAIDAS_63 = subset(CAIDAS_6,CAIDAS_6$ACTIVIDAD=="Acostarse")
+    radar <- ggplot(CAIDAS_63, aes(factor(CAIDAS_63$HORA)), environment=environment()) +  geom_bar(fill="darkblue",width = 1, colour = "green")
+    radar + xlab("Horas") + ylab("Caidas")+ ggtitle("Actividad: Acostarse")+ coord_polar() + theme_bw()#theme_classic()
+    
   }) 
   ##################UPP#######################################################  
   output$distPlotUPP <- renderPlot({
@@ -468,6 +656,36 @@ shinyServer(function(input, output) {
     mtext("Estancias",side=4,line=3)
     
   })  
+  
+  output$distPlotUPP4 <- renderPlot({
+    
+    plot(PAC,type = "l", ylim = c(1,8),main = "Prevalencia de UPP")
+    abline(h=7.63, col = "red")
+    abline(h=4.86, col = "brown")
+    abline(h=4.13, col = "orange")
+    legend(x="bottom",horiz = TRUE,c("Prev. adultos ENP","Prevalencia Base","Prevalencia","Objetivo"),lty = c(1,1),lwd=c(2.5,2.5),col=c("red","brown","grey","orange"))
+  })
+
+  output$distPlotUPP3 <- renderPlot({
+    UPP_2 = subset(UPP_2,UPP_2$FECHA_VALORACION>=input$dateRangeALL[1]&UPP_2$FECHA_VALORACION<=input$dateRangeALL[2])
+    UPP_21 <- aggregate(UPP_2$UPP_FUERA,list(Mes = UPP_2$MES),sum)
+    UPP_22 <- aggregate(UPP_2$UPP,list(Mes = UPP_2$MES),sum)
+    UPP_22$UPP <- UPP_21$x
+    A <- UPP_22$UPP
+    B <- UPP_22$x
+    D <- UPP_22$Mes
+    
+    C <-rbind(A,B)
+    barplot(C,beside = TRUE,names.arg = D,col=c("green","darkblue"))
+    legend(x="bottom",horiz = TRUE, c("Nosocomiales","Fuera del hospital","Estancias"),lty = c(1,1,1),lwd=c(1,1,1),col=c("green","blue","brown"))
+    #axis(4)
+    #mtext("Nosocomiales",side=4,line=3)
+    par(new=TRUE)
+    plot(ESTAN$MES,ESTAN$ESTAN1,type="o",col="brown",xaxt="n",yaxt="n",xlab="",ylab="")
+    axis(4)
+    mtext("Estancias",side=4,line=3)
+    
+  }) 
   ########################MEDERR########################################
   output$distPlotMEDERR <- renderPlot({
     MEDERR1 = subset(MEDERR1,MEDERR1$FECHA_ENTRADA2>=input$dateRangeALL[1]&MEDERR1$FECHA_ENTRADA2<=input$dateRangeALL[2])
@@ -510,11 +728,37 @@ shinyServer(function(input, output) {
     text(MP,c(1,1),TABLA,col = "white")
   })
   
+  output$distPlotMEDERREAM <- renderPlot({
+    MEDERR1 = subset(MEDERR1,MEDERR1$FECHA_ENTRADA2>=input$dateRangeALL[1]&MEDERR1$FECHA_ENTRADA2<=input$dateRangeALL[2])
+    TABLA = table(MEDERR1$TIPO,MEDERR1$MES)
+    
+    MP<-barplot(TABLA,
+                col=c("grey","green","darkblue"),
+                border = 'white',
+                main="Número de alertas por mes y por eventos de medicación adversa",
+                xlab="Mes",
+                ylab="Alertas por mes"
+                #legend = c("ALERGIA","INCOMPATIBLE","DUPLICADA")
+    )
+    legend(x="bottom",horiz = TRUE, c("EMA","ALERG","INCOMP","DUPL"),pch = c(17,15,15,15),lty = c(1,1,1,1),lwd=c(1,1,1,1),col=c("brown","grey","green","blue"))
+    par(new=TRUE)
+    plot(RAM$MES,RAM$RAM1,type="o",col="brown",pch=17,xaxt="n",yaxt="n",xlab="",ylab="")
+    axis(4)
+    mtext("Prescripciones",side=4,line=3)
+    text(MP,c(1,1),TABLA,col = "white")
+  })
+  
   output$distPlotMEDERRPOS <- renderPlot({
     MEDERR2 = subset(MEDERR2,MEDERR2$FECHA_ENTRADA2>=input$dateRangeALL[1]&MEDERR2$FECHA_ENTRADA2<=input$dateRangeALL[2])
     MEDERR2 = subset(MEDERR2,MEDERR2$POSICION=="Médico"|MEDERR2$POSICION=="Farmaceútico")
     POSI = table(MEDERR2$POSICION)
-    pie3D(POSI,main = "Porcentaje de alertas por posición")
+    FRAME <- as.data.frame(POSI)
+    x <- FRAME$Freq
+    names(x) <- FRAME$Var1
+    pct <- round(x/sum(x)*100)
+    pct <- paste(names(x), pct)
+    pct <- paste(pct, "%", sep="")
+    pie3D(POSI,main = "Porcentaje de alertas por posición",col = c("darkblue","green"),labels = pct)
     
   })
 })
